@@ -64,7 +64,7 @@
     .btn-delete:hover {
       background-color: #d63030;
     }
-    #modal {
+    #modal, #importModal {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -72,19 +72,24 @@
       background-color: rgba(0,0,0,0.6);
       justify-content: center;
       align-items: center;
+      z-index: 1000;
     }
-    #modal-content {
+    #modal-content, #importModalContent {
       background-color: #1e1e1e;
       padding: 20px;
       border-radius: 10px;
-      width: 300px;
+      width: 320px;
     }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 8px;
       margin: 8px 0;
       border: none;
       border-radius: 6px;
+    }
+    textarea {
+      height: 150px;
+      resize: none;
     }
     .dark-mode {
       background-color: #fff;
@@ -108,7 +113,6 @@
       <button id="addClassBtn">Add Class</button>
       <button id="exportBtn">Export</button>
       <button id="importBtn">Import</button>
-      <input type="file" id="importFile" style="display:none" />
       <button id="clearBtn">Clear</button>
       <button id="themeToggleBtn">🌙</button>
     </div>
@@ -148,10 +152,21 @@
     </div>
   </div>
 
+  <!-- Import JSON Modal -->
+  <div id="importModal">
+    <div id="importModalContent">
+      <h2>Import JSON Data</h2>
+      <textarea id="importTextarea" placeholder='Paste JSON data here...'></textarea>
+      <div style="display:flex; justify-content:space-between; margin-top:10px;">
+        <button id="importConfirmBtn">Import</button>
+        <button id="importCancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ---------- Local Storage ----------
     let scheduleData = JSON.parse(localStorage.getItem("scheduleData")) || [];
-
     function saveData() {
       localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
     }
@@ -218,7 +233,6 @@
     function renderWorkflowView() {
       content.innerHTML = `
         <h2>Workflow Summary</h2>
-        <p>Upcoming classes:</p>
         <ul>
           ${scheduleData.map(d => `<li>${d.day} - ${d.time} (${d.className})</li>`).join("") || "<li>No classes yet.</li>"}
         </ul>
@@ -233,12 +247,11 @@
       `;
     }
 
-    // ---------- Modal Controls ----------
+    // ---------- Add Class Modal ----------
     const modal = document.getElementById("modal");
     const addClassBtn = document.getElementById("addClassBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const addClassForm = document.getElementById("addClassForm");
-
     addClassBtn.addEventListener("click", () => modal.style.display = "flex");
     cancelBtn.addEventListener("click", () => modal.style.display = "none");
     window.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
@@ -259,7 +272,7 @@
       renderTableView();
     });
 
-    // ---------- Export / Import / Clear ----------
+    // ---------- Export ----------
     document.getElementById("exportBtn").addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(scheduleData, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
@@ -268,26 +281,36 @@
       a.click();
     });
 
-    document.getElementById("importBtn").addEventListener("click", () => {
-      document.getElementById("importFile").click();
-    });
+    // ---------- Import (Paste JSON) ----------
+    const importModal = document.getElementById("importModal");
+    const importBtn = document.getElementById("importBtn");
+    const importConfirmBtn = document.getElementById("importConfirmBtn");
+    const importCancelBtn = document.getElementById("importCancelBtn");
+    const importTextarea = document.getElementById("importTextarea");
 
-    document.getElementById("importFile").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        try {
-          scheduleData = JSON.parse(ev.target.result);
+    importBtn.addEventListener("click", () => {
+      importModal.style.display = "flex";
+      importTextarea.value = "";
+    });
+    importCancelBtn.addEventListener("click", () => importModal.style.display = "none");
+
+    importConfirmBtn.addEventListener("click", () => {
+      try {
+        const parsed = JSON.parse(importTextarea.value.trim());
+        if (Array.isArray(parsed)) {
+          scheduleData = parsed;
           saveData();
           renderTableView();
-        } catch {
-          alert("Invalid file format.");
+          importModal.style.display = "none";
+        } else {
+          alert("JSON must be an array of class objects.");
         }
-      };
-      reader.readAsText(file);
+      } catch (err) {
+        alert("Invalid JSON format. Please check and try again.");
+      }
     });
 
+    // ---------- Clear ----------
     document.getElementById("clearBtn").addEventListener("click", () => {
       if (confirm("Are you sure you want to clear all data?")) {
         scheduleData = [];
@@ -296,11 +319,10 @@
       }
     });
 
-    // ---------- Highlight Current Day ----------
+    // ---------- Highlight Today ----------
     function highlightToday() {
       const today = new Date().toLocaleString("en-AU", { weekday: "long" });
-      const rows = document.querySelectorAll("table tbody tr");
-      rows.forEach(row => {
+      document.querySelectorAll("table tbody tr").forEach(row => {
         const dayCell = row.children[0];
         if (dayCell && dayCell.textContent === today) {
           row.style.backgroundColor = "rgba(0,255,0,0.15)";
@@ -308,7 +330,7 @@
       });
     }
 
-    // ---------- Dark Mode Toggle ----------
+    // ---------- Dark Mode ----------
     const themeToggleBtn = document.getElementById("themeToggleBtn");
     themeToggleBtn.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
