@@ -4,71 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Class Schedule & Calendar</title>
-  <style>
-    :root {
-      --primary-color: #6366f1;
-      --bg-color: #0f172a;
-      --text-color: #e2e8f0;
-      --card-bg: #1e293b;
-      --accent-color: #3b82f6;
-      --highlight-color: #10b981;
-    }
-    body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-color); }
-    header { background: var(--primary-color); color: white; padding: 1rem 2rem; text-align: center; font-size: 1.5rem; font-weight: 600; }
-    nav { display: flex; justify-content: center; gap: 1rem; background: #1e293b; padding: 0.8rem; flex-wrap: wrap; }
-    nav button { background: transparent; border: none; color: var(--text-color); font-size: 1rem; cursor: pointer; transition: 0.2s; }
-    nav button.active, nav button:hover { color: var(--accent-color); }
-    main { padding: 1.5rem; }
-    .btn { background: var(--accent-color); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 0.4rem; cursor: pointer; transition: 0.2s; margin:0.2rem; }
-    .btn:hover { background: #2563eb; }
-    .section { display: none; }
-    .section.active { display: block; }
-    .course-card, .day-section { background: var(--card-bg); padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-    .day-section.current-day { border: 2px solid var(--highlight-color); box-shadow: 0 0 10px var(--highlight-color); }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: var(--card-bg); border-radius: 0.5rem; overflow: hidden; }
-    th, td { padding: 0.8rem; border-bottom: 1px solid #334155; text-align: left; }
-    th { background: #1e293b; color: var(--accent-color); }
-    .day-section .day-heading { font-weight: bold; font-size: 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
-    .current-day-indicator { background: var(--highlight-color); color: white; padding: 0.2rem 0.5rem; border-radius: 0.3rem; font-size: 0.8rem; margin-left: 0.5rem; }
-    .day-section .class-item { display: flex; flex-direction: column; margin: 0.5rem 0; padding: 0.8rem; border: 1px solid #334155; border-radius: 0.5rem; background: #1f2937; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-    .day-section .class-item strong { font-size: 1rem; margin-bottom: 0.2rem; color: var(--accent-color); }
-    .day-section .class-item span { font-size: 0.9rem; color: #cbd5e1; }
-    .empty-state { text-align: center; margin-top: 3rem; opacity: 0.8; }
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.9); display: none; align-items: center; justify-content: center; z-index: 100; }
-    .modal.active { display: flex; }
-    .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 0.6rem; width: 90%; max-width: 450px; }
-    input, select, textarea { width: 100%; padding: 0.6rem; border-radius: 0.4rem; border: none; margin: 0.4rem 0 1rem 0; background: #334155; color: white; }
-    .delete-class, .delete-course { background: none; border: none; color: #f87171; font-size: 1.2rem; cursor: pointer; float: right; }
-    #calendar-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 1rem; }
-    .calendar-day { background: var(--card-bg); padding: 1rem 0.5rem; text-align: center; border-radius: 5px; cursor: pointer; position: relative; }
-    .calendar-day:hover { background: #334155; }
-    .event-dot { width: 8px; height: 8px; background: var(--highlight-color); border-radius: 50%; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); }
-    #event-details { margin-top: 1rem; padding: 0.5rem; background: var(--card-bg); border-radius: 5px; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-theme="dark">
 <header>📘 My Class Schedule</header>
 <nav>
-  <button class="active" onclick="showSection('overview')">Overview</button>
-  <button onclick="showSection('workflow')">Workflow</button>
+  <button class="active" onclick="showSection('workflow')">Workflow</button>
   <button onclick="showSection('courses')">Courses</button>
   <button onclick="showSection('settings')">Settings</button>
   <button onclick="showSection('calendar')">Calendar</button>
 </nav>
 <main>
-  <!-- Overview -->
-  <section id="overview" class="section active">
+  <!-- Workflow -->
+  <section id="workflow" class="section active">
     <div class="section-actions">
       <button class="btn" onclick="openAddClassModal()">+ Add Class</button>
-      <button class="btn" onclick="importData()">Import</button>
-      <button class="btn" onclick="exportData()">Export</button>
-      <button class="btn" onclick="clearAllData()">Clear</button>
     </div>
-    <div id="schedule-container"></div>
-  </section>
-
-  <!-- Workflow -->
-  <section id="workflow" class="section">
     <div id="daily-schedule-container"></div>
   </section>
 
@@ -89,7 +40,17 @@
     <input id="student-id" placeholder="Enter your student ID" />
     <label>Term:</label>
     <input id="academic-term" placeholder="e.g. Session 02" />
-    <button class="btn" onclick="saveSettings()">Save</button>
+    <label>Theme:</label>
+    <select id="theme-select" onchange="toggleTheme()">
+      <option value="dark">Dark Mode</option>
+      <option value="light">Light Mode</option>
+    </select>
+    <div class="section-actions">
+      <button class="btn" onclick="saveSettings()">Save</button>
+      <button class="btn" onclick="importData()">Import</button>
+      <button class="btn" onclick="exportData()">Export</button>
+      <button class="btn" onclick="clearAllData()">Clear</button>
+    </div>
   </section>
 
   <!-- Calendar -->
@@ -98,6 +59,14 @@
     <select id="university" onchange="renderCalendar()">
       <option value="mq">Macquarie University</option>
     </select>
+    <div class="calendar-nav">
+      <button class="btn" onclick="changeMonth(-1)">Previous</button>
+      <h3 id="calendar-month-year"></h3>
+      <div>
+        <button class="btn-today" onclick="goToToday()">Today</button>
+        <button class="btn" onclick="changeMonth(1)">Next</button>
+      </div>
+    </div>
     <div id="calendar-container"></div>
     <div id="event-details"></div>
   </section>
@@ -146,300 +115,6 @@
   </div>
 </div>
 
-<script>
-let scheduleData = JSON.parse(localStorage.getItem("scheduleData")) || { settings: {}, courses: [], classes: [] };
-
-// ----------------- Tabs -----------------
-function showSection(id) {
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-  document.querySelector(`nav button[onclick="showSection('${id}')"]`).classList.add("active");
-  document.getElementById(id).classList.add("active");
-}
-
-function saveData() { localStorage.setItem("scheduleData", JSON.stringify(scheduleData)); }
-
-function renderAll() {
-  renderScheduleTable();
-  renderWorkflowView();
-  renderCoursesView();
-  updateCourseDropdown();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  renderAll();
-  renderCalendar();
-});
-
-// ----------------- Schedule -----------------
-function renderScheduleTable() {
-  const c = document.getElementById("schedule-container");
-  c.innerHTML = "";
-  if (!scheduleData.classes.length) {
-    c.innerHTML = `<div class="empty-state"><h3>No Classes Added</h3></div>`;
-    return;
-  }
-  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  let html = `<table><thead><tr><th>Day</th><th>Course</th><th>Type</th><th>Time</th><th>Location</th><th></th></tr></thead><tbody>`;
-  days.forEach(day => {
-    const list = scheduleData.classes.filter(x => x.day === day);
-    list.forEach((cls, i) => {
-      html += `<tr>${i===0?`<td rowspan="${list.length}">${day}</td>`:""}
-        <td>${cls.course}</td><td>${cls.type}</td><td>${cls.time}</td><td>${cls.location}</td>
-        <td><button class="delete-class" onclick="deleteClass('${cls.id}')">&times;</button></td></tr>`;
-    });
-  });
-  html += `</tbody></table>`;
-  c.innerHTML = html;
-}
-
-function renderWorkflowView() {
-  const c = document.getElementById("daily-schedule-container");
-  c.innerHTML = "";
-  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
-  days.forEach(day => {
-    const section = document.createElement("div");
-    const isToday = day === today;
-    section.className = `day-section ${isToday ? "current-day" : ""}`;
-    section.innerHTML = `<div class="day-heading">${day}${isToday ? '<span class="current-day-indicator">Today</span>' : ''}</div>`;
-    const classes = scheduleData.classes.filter(c => c.day === day);
-    if (classes.length) {
-      classes.forEach(cls => {
-        section.innerHTML += `<div class="class-item"><strong>${cls.course}</strong><span>${cls.type}</span><span>${cls.time}</span><span>${cls.location}</span></div>`;
-      });
-    } else {
-      section.innerHTML += `<div class="class-item" style="opacity:0.6;">No classes scheduled</div>`;
-    }
-    c.appendChild(section);
-  });
-}
-
-function renderCoursesView() {
-  const c = document.getElementById("courses-container");
-  c.innerHTML = "";
-  if (!scheduleData.courses.length) {
-    c.innerHTML = `<div class="empty-state"><h3>No Courses Added</h3></div>`;
-    return;
-  }
-  scheduleData.courses.forEach(x => {
-    const card = document.createElement("div");
-    card.className = "course-card";
-    card.innerHTML = `<button class="delete-course" onclick="deleteCourse('${x.code}')">&times;</button>
-      <h3>${x.code}</h3><p>${x.name}</p>`;
-    c.appendChild(card);
-  });
-}
-
-function updateCourseDropdown() {
-  const s = document.getElementById("class-course");
-  s.innerHTML = '<option value="">Select a course</option>';
-  scheduleData.courses.forEach(x => {
-    const o = document.createElement("option");
-    o.value = x.code;
-    o.textContent = `${x.code} - ${x.name}`;
-    s.appendChild(o);
-  });
-}
-
-// ----------------- Add/Delete -----------------
-function addNewClass() {
-  const cls = {
-    id: Date.now().toString(),
-    day: document.getElementById("class-day").value,
-    course: document.getElementById("class-course").value,
-    type: document.getElementById("class-type").value,
-    time: document.getElementById("class-time").value,
-    location: document.getElementById("class-location").value,
-  };
-  scheduleData.classes.push(cls); saveData(); closeModal("add-class-modal"); renderAll();
-}
-
-function addNewCourse() {
-  const c = { code: document.getElementById("course-code").value.trim(), name: document.getElementById("course-name").value.trim() };
-  scheduleData.courses.push(c); saveData(); closeModal("add-course-modal"); renderAll();
-}
-
-function deleteClass(id) { scheduleData.classes = scheduleData.classes.filter(c => c.id !== id); saveData(); renderAll(); }
-function deleteCourse(code) { scheduleData.courses = scheduleData.courses.filter(c => c.code !== code); saveData(); renderAll(); }
-
-function saveSettings() {
-  scheduleData.settings = {
-    name: document.getElementById("student-name").value,
-    studentId: document.getElementById("student-id").value,
-    term: document.getElementById("academic-term").value
-  };
-  saveData(); alert("Settings saved!");
-}
-
-function openAddClassModal(){document.getElementById("add-class-modal").classList.add("active");}
-function openAddCourseModal(){document.getElementById("add-course-modal").classList.add("active");}
-function closeModal(id){document.getElementById(id).classList.remove("active");}
-
-// ----------------- Import/Export -----------------
-function exportData() {
-  const data = JSON.stringify(scheduleData, null, 2);
-  const blob = new Blob([data], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "class-schedule.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function importData() { document.getElementById("import-modal").classList.add("active"); }
-
-function importDataFromText() {
-  try {
-    const txt = document.getElementById("import-data").value;
-    const parsed = JSON.parse(txt);
-    if (!parsed.settings || !parsed.courses || !parsed.classes) { alert("Invalid JSON structure!"); return; }
-    scheduleData = parsed; saveData(); closeModal("import-modal"); renderAll();
-  } catch(e){ alert("Invalid JSON!"); }
-}
-
-function clearAllData() {
-  if(confirm("Clear all data?")) {
-    localStorage.removeItem("scheduleData");
-    scheduleData = { settings: {}, courses: [], classes: [] };
-    renderAll();
-  }
-}
-
-// ----------------- Calendar -----------------
-const mqEvents = [
-  {"date":"2025-01-01","name":"Recess End","session":"Session 3"},
-  {"date":"2025-01-02","name":"Session classes resume","session":"Session 3"},
-  {"date":"2025-01-19","name":"Last Day of Classes","session":"Session 3"},
-  {"date":"2025-01-20","name":"Exams Start","session":"Session 3"},
-  {"date":"2025-01-24","name":"Study Period End","session":"Session 3"},
-  {"date":"2025-01-24","name":"Exams End","session":"Session 3"},
-  {"date":"2025-02-06","name":"Result Publication Date","session":"Session 3"},
-  {"date":"2025-02-10","name":"Supplementary Exams start","session":"Session 3"},
-  {"date":"2025-02-13","name":"Supplementary Exams end","session":"Session 3"},
-  {"date":"2025-02-21","name":"Payment Due Date","session":"Session 1"},
-  {"date":"2025-02-21","name":"Payment Due Date","session":"Full Year"},
-  {"date":"2025-02-24","name":"Study Period Start","session":"Session 1"},
-  {"date":"2025-02-24","name":"Study Period Start","session":"Full Year"},
-  {"date":"2025-03-09","name":"Last Enrol Date via eStudent","session":"Session 1"},
-  {"date":"2025-03-09","name":"Last Enrol Date via eStudent","session":"Full Year"},
-  {"date":"2025-03-21","name":"Teaching Census","session":"Session 1"},
-  {"date":"2025-04-14","name":"Recess Start","session":"Session 1"},
-  {"date":"2025-04-21","name":"Teaching Census","session":"Full Year"},
-  {"date":"2025-04-25","name":"Recess End","session":"Session 1"},
-  {"date":"2025-04-28","name":"Last Withdrawal","session":"Session 1"},
-  {"date":"2025-04-28","name":"Last Withdraw Date via eStudent","session":"Session 1"},
-  {"date":"2025-04-28","name":"Last Withdrawal Without Fail","session":"Session 1"},
-  {"date":"2025-04-28","name":"Session classes resume","session":"Session 1"},
-  {"date":"2025-05-28","name":"Last Withdrawal","session":"Full Year"},
-  {"date":"2025-05-28","name":"Last Withdraw Date via eStudent","session":"Full Year"},
-  {"date":"2025-05-28","name":"Last Withdrawal Without Fail","session":"Full Year"},
-  {"date":"2025-05-30","name":"Last Day of Classes","session":"Full Year 2"},
-  {"date":"2025-06-02","name":"Exams Start","session":"Full Year 2"},
-  {"date":"2025-06-08","name":"Last Day of Classes","session":"Session 1"},
-  {"date":"2025-06-10","name":"Exams Start","session":"Session 1"},
-  {"date":"2025-06-20","name":"Study Period End","session":"Full Year 2"},
-  {"date":"2025-06-20","name":"Exams End","session":"Full Year 2"},
-  {"date":"2025-06-23","name":"Study Period Start","session":"Winter Vacation"},
-  {"date":"2025-06-27","name":"Exams End","session":"Session 1"},
-  {"date":"2025-06-27","name":"Study Period End","session":"Session 1"},
-  {"date":"2025-06-30","name":"Last Enrol Date via eStudent","session":"Winter Vacation"},
-  {"date":"2025-06-30","name":"Session break commences","session":"OUA Session 1"},
-  {"date":"2025-06-30","name":"Session break commences","session":"Session 1"},
-  {"date":"2025-07-01","name":"Teaching Census","session":"Winter Vacation"},
-  {"date":"2025-07-03","name":"Result Publication Date","session":"Full Year 2"},
-  {"date":"2025-07-08","name":"Last Withdrawal","session":"Winter Vacation"},
-  {"date":"2025-07-08","name":"Last Withdraw Date via eStudent","session":"Winter Vacation"},
-  {"date":"2025-07-08","name":"Last Withdrawal Without Fail","session":"Winter Vacation"},
-  {"date":"2025-07-10","name":"Result Publication Date","session":"Session 1"},
-  {"date":"2025-07-10","name":"Supplementary Exams Start","session":"Session 1"},
-  {"date":"2025-07-22","name":"Supplementary Exams End","session":"Session 1"},
-  {"date":"2025-07-25","name":"Payment Due Date","session":"Session 2"},
-  {"date":"2025-07-25","name":"Payment Due Date","session":"Full Year 2"},
-  {"date":"2025-07-28","name":"Study Period Start","session":"Session 2"},
-  {"date":"2025-07-28","name":"Study Period Start","session":"Full Year 2"},
-  {"date":"2025-07-30","name":"Study Period End","session":"Winter Vacation"},
-  {"date":"2025-08-06","name":"Result Publication Date","session":"Winter Vacation"},
-  {"date":"2025-08-10","name":"Last Enrol Date via eStudent","session":"Session 2"},
-  {"date":"2025-08-10","name":"Last Enrol Date via eStudent","session":"Full Year 2"},
-  {"date":"2025-08-22","name":"Teaching Census","session":"Session 2"},
-  {"date":"2025-09-22","name":"Recess Start","session":"Session 2"},
-  {"date":"2025-09-28","name":"Last Withdrawal","session":"Session 2"},
-  {"date":"2025-09-28","name":"Last Withdraw Date via eStudent","session":"Session 2"},
-  {"date":"2025-09-28","name":"Last Withdrawal Without Fail","session":"Session 2"},
-  {"date":"2025-10-03","name":"Teaching Census","session":"Full Year 2"},
-  {"date":"2025-10-06","name":"Recess End","session":"Session 2"},
-  {"date":"2025-10-07","name":"Session classes resume","session":"Session 2"},
-  {"date":"2025-11-09","name":"Last Day of Classes","session":"Session 2"},
-  {"date":"2025-11-09","name":"Last Day of Classes","session":"Full Year"},
-  {"date":"2025-11-10","name":"Exams Start","session":"Session 2"},
-  {"date":"2025-11-10","name":"Exams Start","session":"Full Year"},
-  {"date":"2025-11-28","name":"Exams End","session":"Session 2"},
-  {"date":"2025-11-28","name":"Study Period End","session":"Session 2"},
-  {"date":"2025-11-28","name":"Last Withdrawal","session":"Full Year 2"},
-  {"date":"2025-11-28","name":"Last Withdraw Date via eStudent","session":"Full Year 2"},
-  {"date":"2025-11-28","name":"Last Withdrawal Without Fail","session":"Full Year 2"},
-  {"date":"2025-11-28","name":"Exams End","session":"Full Year"},
-  {"date":"2025-11-28","name":"Study Period End","session":"Full Year"},
-  {"date":"2025-12-01","name":"Session break commences","session":"Session 2"},
-  {"date":"2025-12-11","name":"Result Publication Date","session":"Session 2"},
-  {"date":"2025-12-11","name":"Supplementary Exams Start","session":"Session 2"},
-  {"date":"2025-12-11","name":"Result Publication Date","session":"Full Year"},
-  {"date":"2025-12-12","name":"Payment Due Date","session":"Session 3"},
-  {"date":"2025-12-15","name":"Study Period Start","session":"Session 3"},
-  {"date":"2025-12-21","name":"Last Enrol Date via eStudent","session":"Session 3"},
-  {"date":"2025-12-23","name":"Supplementary Exams End","session":"Session 2"},
-  {"date":"2025-12-25","name":"Recess Start","session":"Session 3"},
-  {"date":"2025-12-29","name":"Teaching Census","session":"Session 3"}
-];
-
-function renderCalendar() {
-  const container = document.getElementById('calendar-container');
-  const details = document.getElementById('event-details');
-  container.innerHTML = ''; 
-  details.innerHTML = '';
-
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const dayToday = today.getDate();
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-
-  // Empty cells for first day alignment
-  for (let i = 0; i < firstDay; i++) {
-    container.appendChild(document.createElement('div'));
-  }
-
-  for (let d = 1; d <= lastDate; d++) {
-    const cell = document.createElement('div');
-    cell.className = 'calendar-day';
-    cell.textContent = d;
-
-    // Highlight today
-    if (d === dayToday) {
-      cell.style.border = '2px solid var(--highlight-color)';
-      cell.style.boxShadow = '0 0 10px var(--highlight-color)';
-    }
-
-    // Check for events
-    const dateString = `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const events = mqEvents.filter(e => e.date === dateString);
-    if (events.length) {
-      const dot = document.createElement('div'); 
-      dot.className = 'event-dot'; 
-      cell.appendChild(dot);
-
-      cell.addEventListener('click', () => {
-        details.innerHTML = events.map(ev => `<strong>${ev.name}</strong> (${ev.session})`).join('<br>');
-      });
-    }
-
-    container.appendChild(cell);
-  }
-}
-
-</script>
+<script src="script.js"></script>
 </body>
 </html>

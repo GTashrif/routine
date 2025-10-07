@@ -1,52 +1,31 @@
 # My Class Schedule
 
-This is a web-based class schedule application with a workflow, courses, settings, and calendar for Macquarie University events.
+A web app to manage your university schedule, view classes, and university events in a simple and interactive way.
 
-## Project Structure
+## Features
 
-project-root/
-│
-├─ index.html # Main HTML file containing all sections
-├─ style.css # Styles for the application
-├─ script.js # JavaScript for app logic and calendar
-└─ README.md # Project documentation (this file)
+- **Overview Tab:** Add, edit, and view your weekly class schedule.
+- **Workflow Tab:** See daily class workflow with the current day highlighted.
+- **Courses Tab:** Manage course details, including adding and deleting courses.
+- **Settings Tab:** Save your student information for personalization.
+- **University Calendar:** 
+  - MQ University events displayed on a calendar.
+  - Event days marked with green dots.
+  - Clicking a date shows event name and session.
+  - Today's date highlighted for quick reference.
+- **Data Persistence:** All classes, courses, and settings are saved to `localStorage`.
+- **Import/Export:** Supports JSON import/export for easy backup and transfer.
 
-
-### File Details
-
-#### `index.html`
-- Contains the layout and sections:
-  - **Workflow**: Add and view daily classes.
-  - **Courses**: Add and view courses.
-  - **Calendar**: Shows MQ University events.
-  - **Settings**: Save student info and import/export data.
-- Navigation bar switches between sections.
-- Includes buttons for adding classes/courses and saving settings.
-
-#### `style.css`
-- Defines colors, fonts, and styles for all sections.
-- Custom styles for cards, buttons, and calendar events.
-- Responsive and visually consistent theme.
-
-#### `script.js`
-- Handles section switching and navigation.
-- Stores and renders classes and courses in `scheduleData`.
-- Implements settings save, import, export, and clear.
-- Contains hardcoded **MQ University events** for the calendar.
-- Renders calendar events dynamically.
-
-#### `README.md`
-- Describes project structure, usage, and purpose.
-
-## How to Use
+## Usage
 
 1. Open `index.html` in a browser.
-2. Navigate between **Workflow**, **Courses**, **Calendar**, and **Settings** using the nav bar.
-3. Add classes or courses in their respective sections.
-4. Calendar tab automatically shows MQ University events.
-5. Use settings to save student information and manage data.
+2. Navigate between tabs using the top navigation.
+3. Use the "Overview" tab to add your classes.
+4. View MQ University events in the calendar tab.
+5. Customize your information in "Settings".
 
-## Notes
-- Calendar events are preloaded and do not require user input.
-- Data is stored in **localStorage**, so it persists across browser sessions.
-- All styling and scripts are contained in separate files for maintainability.
+## Future Enhancements
+
+- Add multiple universities for calendar events.
+- Include month navigation in the calendar.
+- Support recurring classes and events.
