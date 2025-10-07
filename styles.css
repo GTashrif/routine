@@ -48,9 +48,9 @@ nav button.active, nav button:hover { color: var(--accent-color); }
 
 main { padding: 1.5rem; }
 
-.btn { background: var(--accent-color); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 0.4rem; cursor: pointer; transition: 0.2s; margin:0.2rem; }
+.btn { background: transparent; color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 0.4rem; cursor: pointer; transition: 0.2s; margin:0.2rem; font-size: larger;}
 
-.btn:hover { background: #2563eb; }
+.btn:hover { background: #90a4d2; }
 
 .section { display: none; }
 
