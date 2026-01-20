@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Class Schedule & Calendar</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="dark">
+<header>📘 My Class Schedule</header>
+<nav>
+  <button class="active" onclick="showSection('workflow')">Workflow</button>
+  <button onclick="showSection('courses')">Courses</button>
+  <button onclick="showSection('settings')">Settings</button>
+  <button onclick="showSection('calendar')">Calendar</button>
+</nav>
+<main>
+  <!-- Workflow -->
+  <section id="workflow" class="section active">
+    <div class="section-actions">
+      <button class="btn" onclick="openAddClassModal()">+ Add Class</button>
+    </div>
+    <div id="daily-schedule-container"></div>
+  </section>
+
+  <!-- Courses -->
+  <section id="courses" class="section">
+    <div class="section-actions">
+      <button class="btn" onclick="openAddCourseModal()">+ Add Course</button>
+    </div>
+    <div id="courses-container"></div>
+  </section>
+
+  <!-- Settings -->
+  <section id="settings" class="section">
+    <h3>Student Settings</h3>
+    <label>Name:</label>
+    <input id="student-name" placeholder="Enter your name" />
+    <label>Student ID:</label>
+    <input id="student-id" placeholder="Enter your student ID" />
+    <label>Term:</label>
+    <input id="academic-term" placeholder="e.g. Session 02" />
+    <label>Theme:</label>
+    <select id="theme-select" onchange="toggleTheme()">
+      <option value="dark">Dark Mode</option>
+      <option value="light">Light Mode</option>
+    </select>
+    <div class="section-actions">
+      <button class="btn" onclick="saveSettings()">Save</button>
+      <button class="btn" onclick="importData()">Import</button>
+      <button class="btn" onclick="exportData()">Export</button>
+      <button class="btn" onclick="clearAllData()">Clear</button>
+    </div>
+  </section>
+
+  <!-- Calendar -->
+  <section id="calendar" class="section">
+    <label for="university">Select University:</label>
+    <select id="university" onchange="renderCalendar()">
+      <option value="mq">Macquarie University</option>
+    </select>
+    <div class="calendar-nav">
+      <button class="btn" onclick="changeMonth(-1)">⬅️</button>
+      <h3 id="calendar-month-year"></h3>
+      <div>
+        <button class="btn-today" onclick="goToToday()">Today</button>
+        <button class="btn" onclick="changeMonth(1)">➡️</button>
+      </div>
+    </div>
+    <div id="calendar-container"></div>
+    <div id="event-details"></div>
+  </section>
+</main>
+
+<!-- Modals -->
+<div id="add-class-modal" class="modal">
+  <div class="modal-content">
+    <h3>Add Class</h3>
+    <label>Day</label>
+    <select id="class-day">
+      <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+      <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+    </select>
+    <label>Course</label>
+    <select id="class-course"></select>
+    <label>Type</label>
+    <input id="class-type" placeholder="Lecture, Tutorial, Lab" />
+    <label>Time</label>
+    <input id="class-time" placeholder="e.g. 10:00 AM - 12:00 PM" />
+    <label>Location</label>
+    <input id="class-location" placeholder="Room number or building" />
+    <button class="btn" onclick="addNewClass()">Add</button>
+    <button class="btn" onclick="closeModal('add-class-modal')">Cancel</button>
+  </div>
+</div>
+
+<div id="add-course-modal" class="modal">
+  <div class="modal-content">
+    <h3>Add Course</h3>
+    <label>Code</label>
+    <input id="course-code" placeholder="e.g. COMP1350" />
+    <label>Name</label>
+    <input id="course-name" placeholder="Course name" />
+    <button class="btn" onclick="addNewCourse()">Add</button>
+    <button class="btn" onclick="closeModal('add-course-modal')">Cancel</button>
+  </div>
+</div>
+
+<div id="import-modal" class="modal">
+  <div class="modal-content">
+    <h3>Import JSON Data</h3>
+    <textarea id="import-data" placeholder="Paste your JSON here"></textarea>
+    <button class="btn" onclick="importDataFromText()">Import</button>
+    <button class="btn" onclick="closeModal('import-modal')">Cancel</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
