@@ -2,15 +2,25 @@ let scheduleData = JSON.parse(localStorage.getItem("scheduleData")) || { setting
 let currentDate = new Date();
 let editMode = false;
 
-// ----------------- Tabs -----------------
+// ────────────────────────────────────────────────
+// Tabs / Navigation
+// ────────────────────────────────────────────────
 function showSection(id) {
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.querySelector(`nav button[onclick="showSection('${id}')"]`).classList.add("active");
   document.getElementById(id).classList.add("active");
+
+  updateFloatingWeekBadge();
+
+  if (id === 'calendar') {
+    renderCalendar();
+  }
 }
 
-function saveData() { localStorage.setItem("scheduleData", JSON.stringify(scheduleData)); }
+function saveData() { 
+  localStorage.setItem("scheduleData", JSON.stringify(scheduleData)); 
+}
 
 function renderAll() {
   renderWorkflowView();
@@ -21,19 +31,24 @@ function renderAll() {
 document.addEventListener("DOMContentLoaded", () => {
   renderAll();
   renderCalendar();
+  updateFloatingWeekBadge();
   const savedTheme = localStorage.getItem("theme") || "dark";
   document.body.setAttribute("data-theme", savedTheme);
   document.getElementById("theme-select").value = savedTheme;
 });
 
-// ----------------- Theme Toggle -----------------
+// ────────────────────────────────────────────────
+// Theme Toggle
+// ────────────────────────────────────────────────
 function toggleTheme() {
   const theme = document.getElementById("theme-select").value;
   document.body.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
 }
 
-// ----------------- Edit Mode Toggle -----------------
+// ────────────────────────────────────────────────
+// Edit Mode Toggle
+// ────────────────────────────────────────────────
 function toggleEditMode() {
   editMode = !editMode;
   const btn = document.getElementById("edit-toggle-btn");
@@ -49,7 +64,9 @@ function toggleEditMode() {
   renderWorkflowView();
 }
 
-// ----------------- Workflow -----------------
+// ────────────────────────────────────────────────
+// Workflow & Courses Rendering
+// ────────────────────────────────────────────────
 function renderWorkflowView() {
   const c = document.getElementById("daily-schedule-container");
   c.innerHTML = "";
@@ -97,7 +114,7 @@ function renderCoursesView() {
   scheduleData.courses.forEach(x => {
     const card = document.createElement("div");
     card.className = "course-card";
-    card.innerHTML = `<button class="delete-course" onclick="deleteCourse('${x.code}')">&times;</button>
+    card.innerHTML = `<button class="delete-course" onclick="deleteCourse('${x.code}')">×</button>
       <h3>${x.code}</h3><p>${x.name}</p>`;
     c.appendChild(card);
   });
@@ -117,7 +134,9 @@ function updateCourseDropdown() {
   });
 }
 
-// ----------------- Add/Edit/Delete -----------------
+// ────────────────────────────────────────────────
+// Add / Edit / Delete Classes & Courses
+// ────────────────────────────────────────────────
 function addNewClass() {
   const cls = {
     id: Date.now().toString(),
@@ -127,7 +146,14 @@ function addNewClass() {
     time: document.getElementById("class-time").value,
     location: document.getElementById("class-location").value,
   };
-  scheduleData.classes.push(cls); saveData(); closeModal("add-class-modal"); renderAll();
+  if (!cls.course) {
+    alert("Please select a course");
+    return;
+  }
+  scheduleData.classes.push(cls); 
+  saveData(); 
+  closeModal("add-class-modal"); 
+  renderAll();
 }
 
 function openEditClassModal(id) {
@@ -147,6 +173,10 @@ function saveEditedClass() {
   const id = document.getElementById("edit-class-id").value;
   const idx = scheduleData.classes.findIndex(c => c.id === id);
   if (idx === -1) return;
+  if (!document.getElementById("edit-class-course").value) {
+    alert("Please select a course");
+    return;
+  }
   scheduleData.classes[idx] = {
     id,
     day: document.getElementById("edit-class-day").value,
@@ -155,15 +185,31 @@ function saveEditedClass() {
     time: document.getElementById("edit-class-time").value,
     location: document.getElementById("edit-class-location").value,
   };
-  saveData(); closeModal("edit-class-modal"); renderWorkflowView();
+  saveData(); 
+  closeModal("edit-class-modal"); 
+  renderWorkflowView();
 }
 
 function addNewCourse() {
-  const c = { code: document.getElementById("course-code").value.trim(), name: document.getElementById("course-name").value.trim() };
-  scheduleData.courses.push(c); saveData(); closeModal("add-course-modal"); renderAll();
+  const code = document.getElementById("course-code").value.trim();
+  const name = document.getElementById("course-name").value.trim();
+  if (!code || !name) {
+    alert("Please enter both course code and name");
+    return;
+  }
+  const c = { code, name };
+  scheduleData.courses.push(c); 
+  saveData(); 
+  closeModal("add-course-modal"); 
+  renderAll();
 }
 
-function deleteClass(id) { scheduleData.classes = scheduleData.classes.filter(c => c.id !== id); saveData(); renderWorkflowView(); }
+function deleteClass(id) { 
+  scheduleData.classes = scheduleData.classes.filter(c => c.id !== id); 
+  saveData(); 
+  renderWorkflowView(); 
+}
+
 function deleteCourse(code) {
   scheduleData.classes = scheduleData.classes.filter(c => c.course !== code);
   scheduleData.courses = scheduleData.courses.filter(c => c.code !== code);
@@ -177,14 +223,17 @@ function saveSettings() {
     studentId: document.getElementById("student-id").value,
     term: document.getElementById("academic-term").value
   };
-  saveData(); alert("Settings saved!");
+  saveData(); 
+  alert("Settings saved!");
 }
 
 function openAddClassModal(){document.getElementById("add-class-modal").classList.add("active");}
 function openAddCourseModal(){document.getElementById("add-course-modal").classList.add("active");}
 function closeModal(id){document.getElementById(id).classList.remove("active");}
 
-// ----------------- Import/Export -----------------
+// ────────────────────────────────────────────────
+// Import / Export / Clear Data
+// ────────────────────────────────────────────────
 function exportData() {
   const data = JSON.stringify(scheduleData, null, 2);
   const blob = new Blob([data], { type: "application/json" });
@@ -201,9 +250,17 @@ function importDataFromText() {
   try {
     const txt = document.getElementById("import-data").value;
     const parsed = JSON.parse(txt);
-    if (!parsed.settings || !parsed.courses || !parsed.classes) { alert("Invalid JSON structure!"); return; }
-    scheduleData = parsed; saveData(); closeModal("import-modal"); renderAll();
-  } catch(e){ alert("Invalid JSON!"); }
+    if (!parsed.settings || !parsed.courses || !parsed.classes) { 
+      alert("Invalid JSON structure!"); 
+      return; 
+    }
+    scheduleData = parsed; 
+    saveData(); 
+    closeModal("import-modal"); 
+    renderAll();
+  } catch(e){
+    alert("Invalid JSON!");
+  }
 }
 
 function clearAllData() {
@@ -219,13 +276,15 @@ function clearAllData() {
   }
 }
 
-// ----------------- Calendar -----------------
+// ────────────────────────────────────────────────
+// Calendar & Floating Badge Logic
+// ────────────────────────────────────────────────
 const mqEvents = [
-  // =========================
-  // SESSION 1 – 2026
-  // =========================
+  { date: "2026-02-23", name: "Session 1 Start", session: "Session 1", isSessionStart: true },
+  { date: "2026-07-27", name: "Session 2 Start", session: "Session 2", isSessionStart: true },
+  { date: "2026-12-14", name: "Session 3 Start", session: "Session 3", isSessionStart: true },
+
   {"date":"2026-02-16","name":"Kickstart","session":"Session 1"},
-  {"date":"2026-02-23","name":"Study Period Start","session":"Session 1"},
   {"date":"2026-03-08","name":"Last Enrol Date via eStudent","session":"Session 1"},
   {"date":"2026-03-20","name":"Teaching Census","session":"Session 1"},
   {"date":"2026-04-06","name":"Recess Start","session":"Session 1"},
@@ -235,46 +294,14 @@ const mqEvents = [
   {"date":"2026-06-07","name":"Last Day of Classes","session":"Session 1"},
   {"date":"2026-06-09","name":"Exams Start","session":"Session 1"},
   {"date":"2026-06-26","name":"Exams End","session":"Session 1"},
-  {"date":"2026-06-26","name":"Study Period End","session":"Session 1"},
   {"date":"2026-07-09","name":"Result Publication Date","session":"Session 1"},
-
-  // =========================
-  // SESSION 2 – 2026
-  // =========================
-  {"date":"2026-07-20","name":"Kickstart","session":"Session 2"},
-  {"date":"2026-07-27","name":"Study Period Start","session":"Session 2"},
-  {"date":"2026-08-09","name":"Last Enrol Date via eStudent","session":"Session 2"},
-  {"date":"2026-08-21","name":"Teaching Census","session":"Session 2"},
-  {"date":"2026-09-21","name":"Recess Start","session":"Session 2"},
-  {"date":"2026-09-28","name":"Last Withdrawal Without Fail","session":"Session 2"},
-  {"date":"2026-10-05","name":"Recess End","session":"Session 2"},
-  {"date":"2026-10-06","name":"Session classes resume","session":"Session 2"},
-  {"date":"2026-11-08","name":"Last Day of Classes","session":"Session 2"},
-  {"date":"2026-11-09","name":"Exams Start","session":"Session 2"},
-  {"date":"2026-11-27","name":"Exams End","session":"Session 2"},
-  {"date":"2026-11-27","name":"Study Period End","session":"Session 2"},
-  {"date":"2026-12-10","name":"Result Publication Date","session":"Session 2"},
-
-  // =========================
-  // SESSION 3 – 2026/2027
-  // =========================
-  {"date":"2026-12-14","name":"Study Period Start","session":"Session 3"},
-  {"date":"2026-12-20","name":"Last Enrol Date via eStudent","session":"Session 3"},
-  {"date":"2026-12-24","name":"Teaching Census","session":"Session 3"},
-  {"date":"2026-12-28","name":"Recess Start","session":"Session 3"},
-  {"date":"2026-12-31","name":"Last Withdrawal Without Fail","session":"Session 3"},
-  {"date":"2027-01-03","name":"Recess End","session":"Session 3"},
-  {"date":"2027-01-04","name":"Session classes resume","session":"Session 3"},
-  {"date":"2027-01-24","name":"Last Day of Classes","session":"Session 3"},
-  {"date":"2027-01-25","name":"Exams Start","session":"Session 3"},
-  {"date":"2027-02-01","name":"Exams End","session":"Session 3"},
-  {"date":"2027-02-01","name":"Study Period End","session":"Session 3"},
-  {"date":"2027-02-11","name":"Result Publication Date","session":"Session 3"}
+  // Add more dates for Session 2 and 3 if desired
 ];
 
 function goToToday() {
   currentDate = new Date();
   renderCalendar();
+  updateFloatingWeekBadge();
   const todayBtn = document.querySelector('.btn-today');
   todayBtn.classList.add('fade');
   setTimeout(() => todayBtn.classList.remove('fade'), 500);
@@ -283,6 +310,62 @@ function goToToday() {
 function changeMonth(direction) {
   currentDate.setMonth(currentDate.getMonth() + direction);
   renderCalendar();
+  updateFloatingWeekBadge();
+}
+
+function getCurrentTeachingWeek(targetDate) {
+  const sessionStarts = mqEvents.filter(e => e.isSessionStart);
+  sessionStarts.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  let activeSession = null;
+
+  for (const start of sessionStarts) {
+    const startDate = new Date(start.date);
+    if (targetDate >= startDate) {
+      activeSession = start;
+    } else {
+      break;
+    }
+  }
+
+  if (!activeSession) {
+    return { status: "No current session" };
+  }
+
+  const startDate = new Date(activeSession.date);
+  const diffTime = targetDate - startDate;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  const week = Math.floor(diffDays / 7) + 1;
+
+  // Rough cutoff after ~20 weeks (covers teaching + exam period)
+  console.log(`Current Session: ${activeSession.session}, Week: ${week}`);
+  if (week > 20) {
+    return { status: "No current session" };
+  }
+
+  return {
+    status: "active",
+    session: activeSession.session.replace("Session ", ""), // "1", "2", "3"
+    week
+  };
+}
+
+function updateFloatingWeekBadge() {
+  const badge = document.getElementById('floating-week-badge');
+  if (!badge) return;
+
+  const info = getCurrentTeachingWeek(currentDate);
+
+  if (info.status === "No current session") {
+    badge.querySelector('.session').textContent = "";
+    badge.querySelector('.week-num').textContent = "No current session";
+  } else {
+    badge.querySelector('.session').textContent = `Session ${info.session}`;
+    badge.querySelector('.week-num').textContent = `Week ${info.week}`;
+  }
+
+  badge.classList.add('visible');
 }
 
 function renderCalendar() {
@@ -339,4 +422,6 @@ function renderCalendar() {
 
     container.appendChild(cell);
   }
+
+  updateFloatingWeekBadge();
 }
