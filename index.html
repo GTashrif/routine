@@ -14,7 +14,15 @@
   <button onclick="showSection('settings')">Settings</button>
   <button onclick="showSection('calendar')">Calendar</button>
 </nav>
+
 <main>
+
+  <!-- Floating week badge – visible on ALL tabs, bottom-right -->
+  <div id="floating-week-badge">
+    <span class="session"></span>
+    <strong>Week <span class="week-num"></span></strong>
+  </div>
+
   <!-- Workflow -->
   <section id="workflow" class="section active">
     <div class="section-actions">
@@ -71,6 +79,7 @@
     <div id="calendar-container"></div>
     <div id="event-details"></div>
   </section>
+
 </main>
 
 <!-- Modals -->
