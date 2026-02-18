@@ -347,33 +347,57 @@ input, select, textarea {
   justify-content: space-between; 
   align-items: center; 
   margin-bottom: 1rem; 
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.calendar-nav h3 { margin: 0; }
+.calendar-nav h3 { 
+  margin: 0; 
+  font-size: 1.4rem;
+}
 
-.btn-today { 
-  background: var(--highlight-color); 
-  color: white; 
-  padding: 0.55rem 1.1rem; 
-  border: none; 
-  border-radius: 0.4rem; 
-  cursor: pointer; 
-  font-size: 0.9rem;
+/* ────────────────────────────────────────────────
+   Floating Week Badge – bottom-right, visible everywhere
+──────────────────────────────────────────────── */
+#floating-week-badge {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  background: var(--highlight-color);
+  color: white;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.96;
+  transition: all 0.25s ease;
+  pointer-events: none;
+  display: none;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+#floating-week-badge.visible {
+  display: inline-flex;
+}
+
+#floating-week-badge .session {
   font-weight: 500;
-  transition: background 0.2s, opacity 0.3s; 
-  margin: 0 0.2rem; 
+  opacity: 0.92;
 }
 
-.btn-today:hover { background: #059669; }
-
-.btn-today.fade { 
-  animation: fadeEffect 0.5s ease-in-out; 
-}
-
-@keyframes fadeEffect {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 1; }
+@media (max-width: 600px) {
+  #floating-week-badge {
+    bottom: 16px;
+    right: 16px;
+    padding: 0.5rem 0.95rem;
+    font-size: 0.88rem;
+  }
 }
 
 /* ---- Table ---- */
