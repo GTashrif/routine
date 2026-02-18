@@ -18,7 +18,8 @@
   <!-- Workflow -->
   <section id="workflow" class="section active">
     <div class="section-actions">
-      <button class="btn" onclick="openAddClassModal()">+ Add Class</button>
+      <button class="btn btn-primary" onclick="openAddClassModal()">+ Add Class</button>
+      <button class="btn btn-edit-toggle" id="edit-toggle-btn" onclick="toggleEditMode()">✏️ Edit</button>
     </div>
     <div id="daily-schedule-container"></div>
   </section>
@@ -26,7 +27,7 @@
   <!-- Courses -->
   <section id="courses" class="section">
     <div class="section-actions">
-      <button class="btn" onclick="openAddCourseModal()">+ Add Course</button>
+      <button class="btn btn-primary" onclick="openAddCourseModal()">+ Add Course</button>
     </div>
     <div id="courses-container"></div>
   </section>
@@ -46,10 +47,10 @@
       <option value="light">Light Mode</option>
     </select>
     <div class="section-actions">
-      <button class="btn" onclick="saveSettings()">Save</button>
-      <button class="btn" onclick="importData()">Import</button>
-      <button class="btn" onclick="exportData()">Export</button>
-      <button class="btn" onclick="clearAllData()">Clear</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+      <button class="btn btn-secondary" onclick="importData()">Import</button>
+      <button class="btn btn-secondary" onclick="exportData()">Export</button>
+      <button class="btn btn-danger" onclick="clearAllData()">Clear</button>
     </div>
   </section>
 
@@ -60,11 +61,11 @@
       <option value="mq">Macquarie University</option>
     </select>
     <div class="calendar-nav">
-      <button class="btn" onclick="changeMonth(-1)">⬅️</button>
+      <button class="btn btn-secondary" onclick="changeMonth(-1)">⬅️</button>
       <h3 id="calendar-month-year"></h3>
       <div>
         <button class="btn-today" onclick="goToToday()">Today</button>
-        <button class="btn" onclick="changeMonth(1)">➡️</button>
+        <button class="btn btn-secondary" onclick="changeMonth(1)">➡️</button>
       </div>
     </div>
     <div id="calendar-container"></div>
@@ -89,8 +90,34 @@
     <input id="class-time" placeholder="e.g. 10:00 AM - 12:00 PM" />
     <label>Location</label>
     <input id="class-location" placeholder="Room number or building" />
-    <button class="btn" onclick="addNewClass()">Add</button>
-    <button class="btn" onclick="closeModal('add-class-modal')">Cancel</button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addNewClass()">Add</button>
+      <button class="btn btn-ghost" onclick="closeModal('add-class-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="edit-class-modal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Class</h3>
+    <input type="hidden" id="edit-class-id" />
+    <label>Day</label>
+    <select id="edit-class-day">
+      <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+      <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+    </select>
+    <label>Course</label>
+    <select id="edit-class-course"></select>
+    <label>Type</label>
+    <input id="edit-class-type" placeholder="Lecture, Tutorial, Lab" />
+    <label>Time</label>
+    <input id="edit-class-time" placeholder="e.g. 10:00 AM - 12:00 PM" />
+    <label>Location</label>
+    <input id="edit-class-location" placeholder="Room number or building" />
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEditedClass()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal('edit-class-modal')">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -101,8 +128,10 @@
     <input id="course-code" placeholder="e.g. COMP1350" />
     <label>Name</label>
     <input id="course-name" placeholder="Course name" />
-    <button class="btn" onclick="addNewCourse()">Add</button>
-    <button class="btn" onclick="closeModal('add-course-modal')">Cancel</button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addNewCourse()">Add</button>
+      <button class="btn btn-ghost" onclick="closeModal('add-course-modal')">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -110,8 +139,10 @@
   <div class="modal-content">
     <h3>Import JSON Data</h3>
     <textarea id="import-data" placeholder="Paste your JSON here"></textarea>
-    <button class="btn" onclick="importDataFromText()">Import</button>
-    <button class="btn" onclick="closeModal('import-modal')">Cancel</button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="importDataFromText()">Import</button>
+      <button class="btn btn-ghost" onclick="closeModal('import-modal')">Cancel</button>
+    </div>
   </div>
 </div>
 
