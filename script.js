@@ -1,5 +1,6 @@
 let scheduleData = JSON.parse(localStorage.getItem("scheduleData")) || { settings: {}, courses: [], classes: [] };
 let currentDate = new Date();
+let editMode = false;
 
 // ----------------- Tabs -----------------
 function showSection(id) {
@@ -32,6 +33,22 @@ function toggleTheme() {
   localStorage.setItem("theme", theme);
 }
 
+// ----------------- Edit Mode Toggle -----------------
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById("edit-toggle-btn");
+  if (editMode) {
+    btn.textContent = "✅ Done";
+    btn.classList.add("btn-edit-active");
+    btn.classList.remove("btn-edit-toggle");
+  } else {
+    btn.textContent = "✏️ Edit";
+    btn.classList.remove("btn-edit-active");
+    btn.classList.add("btn-edit-toggle");
+  }
+  renderWorkflowView();
+}
+
 // ----------------- Workflow -----------------
 function renderWorkflowView() {
   const c = document.getElementById("daily-schedule-container");
@@ -46,10 +63,25 @@ function renderWorkflowView() {
     const classes = scheduleData.classes.filter(c => c.day === day);
     if (classes.length) {
       classes.forEach(cls => {
-        section.innerHTML += `<div class="class-item"><strong>${cls.course}</strong><span>${cls.type}</span><span>${cls.time}</span><span>${cls.location}</span></div>`;
+        const item = document.createElement("div");
+        item.className = "class-item";
+        item.innerHTML = `
+          <div class="class-item-info">
+            <strong>${cls.course}</strong>
+            <span>${cls.type}</span>
+            <span>${cls.time}</span>
+            <span>${cls.location}</span>
+          </div>
+          ${editMode ? `
+          <div class="class-item-actions">
+            <button class="btn-edit-class" onclick="openEditClassModal('${cls.id}')">✏️ Edit</button>
+            <button class="btn-delete-class" onclick="deleteClass('${cls.id}')">🗑️ Remove</button>
+          </div>` : ''}
+        `;
+        section.appendChild(item);
       });
     } else {
-      section.innerHTML += `<div class="class-item" style="opacity:0.6;">No classes scheduled</div>`;
+      section.innerHTML += `<div class="class-item no-class">No classes scheduled</div>`;
     }
     c.appendChild(section);
   });
@@ -72,17 +104,20 @@ function renderCoursesView() {
 }
 
 function updateCourseDropdown() {
-  const s = document.getElementById("class-course");
-  s.innerHTML = '<option value="">Select a course</option>';
-  scheduleData.courses.forEach(x => {
-    const o = document.createElement("option");
-    o.value = x.code;
-    o.textContent = `${x.code} - ${x.name}`;
-    s.appendChild(o);
+  ["class-course", "edit-class-course"].forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
+    s.innerHTML = '<option value="">Select a course</option>';
+    scheduleData.courses.forEach(x => {
+      const o = document.createElement("option");
+      o.value = x.code;
+      o.textContent = `${x.code} - ${x.name}`;
+      s.appendChild(o);
+    });
   });
 }
 
-// ----------------- Add/Delete -----------------
+// ----------------- Add/Edit/Delete -----------------
 function addNewClass() {
   const cls = {
     id: Date.now().toString(),
@@ -95,16 +130,42 @@ function addNewClass() {
   scheduleData.classes.push(cls); saveData(); closeModal("add-class-modal"); renderAll();
 }
 
+function openEditClassModal(id) {
+  const cls = scheduleData.classes.find(c => c.id === id);
+  if (!cls) return;
+  updateCourseDropdown();
+  document.getElementById("edit-class-id").value = cls.id;
+  document.getElementById("edit-class-day").value = cls.day;
+  document.getElementById("edit-class-course").value = cls.course;
+  document.getElementById("edit-class-type").value = cls.type;
+  document.getElementById("edit-class-time").value = cls.time;
+  document.getElementById("edit-class-location").value = cls.location;
+  document.getElementById("edit-class-modal").classList.add("active");
+}
+
+function saveEditedClass() {
+  const id = document.getElementById("edit-class-id").value;
+  const idx = scheduleData.classes.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  scheduleData.classes[idx] = {
+    id,
+    day: document.getElementById("edit-class-day").value,
+    course: document.getElementById("edit-class-course").value,
+    type: document.getElementById("edit-class-type").value,
+    time: document.getElementById("edit-class-time").value,
+    location: document.getElementById("edit-class-location").value,
+  };
+  saveData(); closeModal("edit-class-modal"); renderWorkflowView();
+}
+
 function addNewCourse() {
   const c = { code: document.getElementById("course-code").value.trim(), name: document.getElementById("course-name").value.trim() };
   scheduleData.courses.push(c); saveData(); closeModal("add-course-modal"); renderAll();
 }
 
-function deleteClass(id) { scheduleData.classes = scheduleData.classes.filter(c => c.id !== id); saveData(); renderAll(); }
+function deleteClass(id) { scheduleData.classes = scheduleData.classes.filter(c => c.id !== id); saveData(); renderWorkflowView(); }
 function deleteCourse(code) {
-  // Automatically delete all classes (timings) associated with this course
   scheduleData.classes = scheduleData.classes.filter(c => c.course !== code);
-  // Delete the course itself
   scheduleData.courses = scheduleData.courses.filter(c => c.code !== code);
   saveData();
   renderAll();
@@ -149,95 +210,66 @@ function clearAllData() {
   if(confirm("Clear all data?")) {
     localStorage.removeItem("scheduleData");
     scheduleData = { settings: {}, courses: [], classes: [] };
+    editMode = false;
+    const btn = document.getElementById("edit-toggle-btn");
+    btn.textContent = "✏️ Edit";
+    btn.classList.remove("btn-edit-active");
+    btn.classList.add("btn-edit-toggle");
     renderAll();
   }
 }
 
 // ----------------- Calendar -----------------
 const mqEvents = [
-  {"date":"2025-01-01","name":"Recess End","session":"Session 3"},
-  {"date":"2025-01-02","name":"Session classes resume","session":"Session 3"},
-  {"date":"2025-01-19","name":"Last Day of Classes","session":"Session 3"},
-  {"date":"2025-01-20","name":"Exams Start","session":"Session 3"},
-  {"date":"2025-01-24","name":"Study Period End","session":"Session 3"},
-  {"date":"2025-01-24","name":"Exams End","session":"Session 3"},
-  {"date":"2025-02-06","name":"Result Publication Date","session":"Session 3"},
-  {"date":"2025-02-10","name":"Supplementary Exams start","session":"Session 3"},
-  {"date":"2025-02-13","name":"Supplementary Exams end","session":"Session 3"},
-  {"date":"2025-02-21","name":"Payment Due Date","session":"Session 1"},
-  {"date":"2025-02-21","name":"Payment Due Date","session":"Full Year"},
-  {"date":"2025-02-24","name":"Study Period Start","session":"Session 1"},
-  {"date":"2025-02-24","name":"Study Period Start","session":"Full Year"},
-  {"date":"2025-03-09","name":"Last Enrol Date via eStudent","session":"Session 1"},
-  {"date":"2025-03-09","name":"Last Enrol Date via eStudent","session":"Full Year"},
-  {"date":"2025-03-21","name":"Teaching Census","session":"Session 1"},
-  {"date":"2025-04-14","name":"Recess Start","session":"Session 1"},
-  {"date":"2025-04-21","name":"Teaching Census","session":"Full Year"},
-  {"date":"2025-04-25","name":"Recess End","session":"Session 1"},
-  {"date":"2025-04-28","name":"Last Withdrawal","session":"Session 1"},
-  {"date":"2025-04-28","name":"Last Withdraw Date via eStudent","session":"Session 1"},
-  {"date":"2025-04-28","name":"Last Withdrawal Without Fail","session":"Session 1"},
-  {"date":"2025-04-28","name":"Session classes resume","session":"Session 1"},
-  {"date":"2025-05-28","name":"Last Withdrawal","session":"Full Year"},
-  {"date":"2025-05-28","name":"Last Withdraw Date via eStudent","session":"Full Year"},
-  {"date":"2025-05-28","name":"Last Withdrawal Without Fail","session":"Full Year"},
-  {"date":"2025-05-30","name":"Last Day of Classes","session":"Full Year 2"},
-  {"date":"2025-06-02","name":"Exams Start","session":"Full Year 2"},
-  {"date":"2025-06-08","name":"Last Day of Classes","session":"Session 1"},
-  {"date":"2025-06-10","name":"Exams Start","session":"Session 1"},
-  {"date":"2025-06-20","name":"Study Period End","session":"Full Year 2"},
-  {"date":"2025-06-20","name":"Exams End","session":"Full Year 2"},
-  {"date":"2025-06-23","name":"Study Period Start","session":"Winter Vacation"},
-  {"date":"2025-06-27","name":"Exams End","session":"Session 1"},
-  {"date":"2025-06-27","name":"Study Period End","session":"Session 1"},
-  {"date":"2025-06-30","name":"Last Enrol Date via eStudent","session":"Winter Vacation"},
-  {"date":"2025-06-30","name":"Session break commences","session":"OUA Session 1"},
-  {"date":"2025-06-30","name":"Session break commences","session":"Session 1"},
-  {"date":"2025-07-01","name":"Teaching Census","session":"Winter Vacation"},
-  {"date":"2025-07-03","name":"Result Publication Date","session":"Full Year 2"},
-  {"date":"2025-07-08","name":"Last Withdrawal","session":"Winter Vacation"},
-  {"date":"2025-07-08","name":"Last Withdraw Date via eStudent","session":"Winter Vacation"},
-  {"date":"2025-07-08","name":"Last Withdrawal Without Fail","session":"Winter Vacation"},
-  {"date":"2025-07-10","name":"Result Publication Date","session":"Session 1"},
-  {"date":"2025-07-10","name":"Supplementary Exams Start","session":"Session 1"},
-  {"date":"2025-07-22","name":"Supplementary Exams End","session":"Session 1"},
-  {"date":"2025-07-25","name":"Payment Due Date","session":"Session 2"},
-  {"date":"2025-07-25","name":"Payment Due Date","session":"Full Year 2"},
-  {"date":"2025-07-28","name":"Study Period Start","session":"Session 2"},
-  {"date":"2025-07-28","name":"Study Period Start","session":"Full Year 2"},
-  {"date":"2025-07-30","name":"Study Period End","session":"Winter Vacation"},
-  {"date":"2025-08-06","name":"Result Publication Date","session":"Winter Vacation"},
-  {"date":"2025-08-10","name":"Last Enrol Date via eStudent","session":"Session 2"},
-  {"date":"2025-08-10","name":"Last Enrol Date via eStudent","session":"Full Year 2"},
-  {"date":"2025-08-22","name":"Teaching Census","session":"Session 2"},
-  {"date":"2025-09-22","name":"Recess Start","session":"Session 2"},
-  {"date":"2025-09-28","name":"Last Withdrawal","session":"Session 2"},
-  {"date":"2025-09-28","name":"Last Withdraw Date via eStudent","session":"Session 2"},
-  {"date":"2025-09-28","name":"Last Withdrawal Without Fail","session":"Session 2"},
-  {"date":"2025-10-03","name":"Teaching Census","session":"Full Year 2"},
-  {"date":"2025-10-06","name":"Recess End","session":"Session 2"},
-  {"date":"2025-10-07","name":"Session classes resume","session":"Session 2"},
-  {"date":"2025-11-09","name":"Last Day of Classes","session":"Session 2"},
-  {"date":"2025-11-09","name":"Last Day of Classes","session":"Full Year"},
-  {"date":"2025-11-10","name":"Exams Start","session":"Session 2"},
-  {"date":"2025-11-10","name":"Exams Start","session":"Full Year"},
-  {"date":"2025-11-28","name":"Exams End","session":"Session 2"},
-  {"date":"2025-11-28","name":"Study Period End","session":"Session 2"},
-  {"date":"2025-11-28","name":"Last Withdrawal","session":"Full Year 2"},
-  {"date":"2025-11-28","name":"Last Withdraw Date via eStudent","session":"Full Year 2"},
-  {"date":"2025-11-28","name":"Last Withdrawal Without Fail","session":"Full Year 2"},
-  {"date":"2025-11-28","name":"Exams End","session":"Full Year"},
-  {"date":"2025-11-28","name":"Study Period End","session":"Full Year"},
-  {"date":"2025-12-01","name":"Session break commences","session":"Session 2"},
-  {"date":"2025-12-11","name":"Result Publication Date","session":"Session 2"},
-  {"date":"2025-12-11","name":"Supplementary Exams Start","session":"Session 2"},
-  {"date":"2025-12-11","name":"Result Publication Date","session":"Full Year"},
-  {"date":"2025-12-12","name":"Payment Due Date","session":"Session 3"},
-  {"date":"2025-12-15","name":"Study Period Start","session":"Session 3"},
-  {"date":"2025-12-21","name":"Last Enrol Date via eStudent","session":"Session 3"},
-  {"date":"2025-12-23","name":"Supplementary Exams End","session":"Session 2"},
-  {"date":"2025-12-25","name":"Recess Start","session":"Session 3"},
-  {"date":"2025-12-29","name":"Teaching Census","session":"Session 3"}
+  // =========================
+  // SESSION 1 – 2026
+  // =========================
+  {"date":"2026-02-16","name":"Kickstart","session":"Session 1"},
+  {"date":"2026-02-23","name":"Study Period Start","session":"Session 1"},
+  {"date":"2026-03-08","name":"Last Enrol Date via eStudent","session":"Session 1"},
+  {"date":"2026-03-20","name":"Teaching Census","session":"Session 1"},
+  {"date":"2026-04-06","name":"Recess Start","session":"Session 1"},
+  {"date":"2026-04-19","name":"Recess End","session":"Session 1"},
+  {"date":"2026-04-20","name":"Session classes resume","session":"Session 1"},
+  {"date":"2026-04-28","name":"Last Withdrawal Without Fail","session":"Session 1"},
+  {"date":"2026-06-07","name":"Last Day of Classes","session":"Session 1"},
+  {"date":"2026-06-09","name":"Exams Start","session":"Session 1"},
+  {"date":"2026-06-26","name":"Exams End","session":"Session 1"},
+  {"date":"2026-06-26","name":"Study Period End","session":"Session 1"},
+  {"date":"2026-07-09","name":"Result Publication Date","session":"Session 1"},
+
+  // =========================
+  // SESSION 2 – 2026
+  // =========================
+  {"date":"2026-07-20","name":"Kickstart","session":"Session 2"},
+  {"date":"2026-07-27","name":"Study Period Start","session":"Session 2"},
+  {"date":"2026-08-09","name":"Last Enrol Date via eStudent","session":"Session 2"},
+  {"date":"2026-08-21","name":"Teaching Census","session":"Session 2"},
+  {"date":"2026-09-21","name":"Recess Start","session":"Session 2"},
+  {"date":"2026-09-28","name":"Last Withdrawal Without Fail","session":"Session 2"},
+  {"date":"2026-10-05","name":"Recess End","session":"Session 2"},
+  {"date":"2026-10-06","name":"Session classes resume","session":"Session 2"},
+  {"date":"2026-11-08","name":"Last Day of Classes","session":"Session 2"},
+  {"date":"2026-11-09","name":"Exams Start","session":"Session 2"},
+  {"date":"2026-11-27","name":"Exams End","session":"Session 2"},
+  {"date":"2026-11-27","name":"Study Period End","session":"Session 2"},
+  {"date":"2026-12-10","name":"Result Publication Date","session":"Session 2"},
+
+  // =========================
+  // SESSION 3 – 2026/2027
+  // =========================
+  {"date":"2026-12-14","name":"Study Period Start","session":"Session 3"},
+  {"date":"2026-12-20","name":"Last Enrol Date via eStudent","session":"Session 3"},
+  {"date":"2026-12-24","name":"Teaching Census","session":"Session 3"},
+  {"date":"2026-12-28","name":"Recess Start","session":"Session 3"},
+  {"date":"2026-12-31","name":"Last Withdrawal Without Fail","session":"Session 3"},
+  {"date":"2027-01-03","name":"Recess End","session":"Session 3"},
+  {"date":"2027-01-04","name":"Session classes resume","session":"Session 3"},
+  {"date":"2027-01-24","name":"Last Day of Classes","session":"Session 3"},
+  {"date":"2027-01-25","name":"Exams Start","session":"Session 3"},
+  {"date":"2027-02-01","name":"Exams End","session":"Session 3"},
+  {"date":"2027-02-01","name":"Study Period End","session":"Session 3"},
+  {"date":"2027-02-11","name":"Result Publication Date","session":"Session 3"}
 ];
 
 function goToToday() {
@@ -266,11 +298,9 @@ function renderCalendar() {
   const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
   const dayToday = isCurrentMonth ? today.getDate() : null;
 
-  // Display month and year
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
 
-  // Add day headers
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   days.forEach(day => {
     const dayHeader = document.createElement('div');
@@ -283,7 +313,6 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month + 1, 0).getDate();
 
-  // Empty cells for first day alignment
   for (let i = 0; i < firstDay; i++) {
     container.appendChild(document.createElement('div'));
   }
@@ -296,7 +325,6 @@ function renderCalendar() {
     }
     cell.textContent = d;
 
-    // Check for events
     const dateString = `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const events = mqEvents.filter(e => e.date === dateString);
     if (events.length) {
